@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
 import { NextRequest, NextResponse } from "next/server";
 
-const RECIPIENT_EMAIL = "mhansen@cngfi.com";
+const RECIPIENT_EMAIL = "mhansen@cmgfi.com";
 
 export async function POST(request: NextRequest) {
   try {
