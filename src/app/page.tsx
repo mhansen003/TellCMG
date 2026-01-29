@@ -60,6 +60,7 @@ export default function Home() {
 
   // Submit state
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
 
   // Toast
   const [toast, setToast] = useState<string | null>(null);
@@ -271,8 +272,7 @@ export default function Home() {
       const data = await response.json();
 
       if (data.success) {
-        setToast("Idea submitted successfully!");
-        setTimeout(() => setToast(null), 4000);
+        setShowSubmitConfirm(true);
       } else {
         throw new Error(data.error || "Submission failed");
       }
@@ -714,6 +714,58 @@ export default function Home() {
         isOpen={showAbout}
         onClose={() => setShowAbout(false)}
       />
+
+      {/* Submit Confirmation Modal */}
+      {showSubmitConfirm && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowSubmitConfirm(false)}
+          />
+          <div className="relative bg-bg-card border border-border-cmg rounded-2xl shadow-2xl shadow-cmg-blue/20 max-w-md w-full animate-fade_in overflow-hidden">
+            {/* Green accent bar */}
+            <div className="h-1 bg-gradient-to-r from-cmg-blue to-cmg-deep" />
+
+            <div className="p-6 sm:p-8 text-center">
+              {/* Success icon */}
+              <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-cmg-blue/15 flex items-center justify-center">
+                <svg className="w-8 h-8 text-cmg-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+
+              <h2 className="text-xl font-bold text-text-primary mb-2">
+                Idea Submitted!
+              </h2>
+              <p className="text-sm text-text-secondary mb-1">
+                Your idea has been sent successfully.
+              </p>
+              <p className="text-xs text-text-muted mb-6">
+                Thank you for helping shape the future of CMG Financial.
+              </p>
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowSubmitConfirm(false)}
+                  className="flex-1 px-4 py-3 rounded-xl bg-bg-elevated border border-border-subtle text-text-secondary font-semibold text-sm hover:text-text-primary hover:border-text-muted/30 transition-all"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    setShowSubmitConfirm(false);
+                    handleReset();
+                  }}
+                  className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-cmg-blue to-cmg-deep text-white font-semibold text-sm hover:brightness-110 transition-all shadow-lg shadow-cmg-blue/20"
+                >
+                  Start New Idea
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Toast */}
       {toast && (
