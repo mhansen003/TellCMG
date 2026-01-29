@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { PromptModeId, DetailLevelId, OutputFormatId } from "@/lib/types";
+import { PromptModeId } from "@/lib/types";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useClipboard } from "@/hooks/useClipboard";
 import Header from "@/components/Header";
@@ -9,11 +9,6 @@ import BrowserWarning from "@/components/BrowserWarning";
 import VoiceRecorder from "@/components/VoiceRecorder";
 import TranscriptEditor, { Attachment } from "@/components/TranscriptEditor";
 import PromptModeSelector from "@/components/PromptModeSelector";
-import ModifierCheckboxes from "@/components/ModifierCheckboxes";
-import DetailLevelSelector from "@/components/DetailLevelSelector";
-import OutputFormatSelector from "@/components/OutputFormatSelector";
-import ContextInput from "@/components/ContextInput";
-import UrlInput, { UrlReference } from "@/components/UrlInput";
 import InterviewModal from "@/components/InterviewModal";
 import AboutModal from "@/components/AboutModal";
 import FormattedPrompt from "@/components/FormattedPrompt";
@@ -40,12 +35,10 @@ export default function Home() {
 
   // Prompt settings
   const [modes, setModes] = useState<PromptModeId[]>([]);
-  const [detailLevel, setDetailLevel] = useState<DetailLevelId>("balanced");
-  const [outputFormat, setOutputFormat] = useState<OutputFormatId>("structured");
-  const [modifiers, setModifiers] = useState<string[]>([]);
-  const [contextInfo, setContextInfo] = useState("");
   const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const [urlReferences, setUrlReferences] = useState<UrlReference[]>([]);
+
+  // Email identification
+  const [email, setEmail] = useState("");
 
   // Generated prompt
   const [generatedPrompt, setGeneratedPrompt] = useState("");
@@ -62,11 +55,11 @@ export default function Home() {
   // About modal
   const [showAbout, setShowAbout] = useState(false);
 
-  // Options collapse
-  const [optionsExpanded, setOptionsExpanded] = useState(false);
-
   // Edit mode for output
   const [isEditingOutput, setIsEditingOutput] = useState(false);
+
+  // Submit state
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Toast
   const [toast, setToast] = useState<string | null>(null);
@@ -106,9 +99,7 @@ export default function Home() {
         const settings = JSON.parse(saved);
         if (settings.modes) setModes(settings.modes);
         else if (settings.mode) setModes([settings.mode]); // migrate old single mode
-        if (settings.detailLevel) setDetailLevel(settings.detailLevel);
-        if (settings.outputFormat) setOutputFormat(settings.outputFormat);
-        if (settings.modifiers) setModifiers(settings.modifiers);
+        if (settings.email) setEmail(settings.email);
       }
     } catch (error) {
       console.error("Failed to load settings:", error);
@@ -120,14 +111,12 @@ export default function Home() {
     try {
       localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify({
         modes,
-        detailLevel,
-        outputFormat,
-        modifiers,
+        email,
       }));
     } catch (error) {
       console.error("Failed to save settings:", error);
     }
-  }, [modes, detailLevel, outputFormat, modifiers]);
+  }, [modes, email]);
 
   // Sync speech transcript
   useEffect(() => {
@@ -176,26 +165,14 @@ export default function Home() {
         content: a.content,
       }));
 
-      // Prepare URL references for API
-      const urlData = urlReferences.map(r => ({
-        title: r.title,
-        content: r.content,
-        type: r.type,
-        url: r.url,
-      }));
-
       const response = await fetch("/api/generate-prompt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           transcript: transcript.trim(),
           modes,
-          detailLevel,
-          outputFormat,
-          modifiers,
-          contextInfo,
+          email: email.trim() || undefined,
           attachments: attachmentData,
-          urlReferences: urlData,
         }),
         signal: abortControllerRef.current.signal,
       });
@@ -223,7 +200,7 @@ export default function Home() {
 
     abortControllerRef.current = null;
     setIsGenerating(false);
-  }, [transcript, modes, detailLevel, outputFormat, modifiers, contextInfo, attachments, urlReferences, isGenerating, isListening, stopListening, addToHistory]);
+  }, [transcript, modes, email, attachments, isGenerating, isListening, stopListening, addToHistory]);
 
   // Cancel generation
   const handleCancelGeneration = useCallback(() => {
@@ -275,6 +252,39 @@ export default function Home() {
     }
   }, [generatedPrompt, copyToClipboard]);
 
+  // Submit idea via email
+  const handleSubmit = useCallback(async () => {
+    if (!generatedPrompt || isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch("/api/submit-idea", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          idea: generatedPrompt,
+          categories: modes,
+          submitterEmail: email.trim() || undefined,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setToast("Idea submitted successfully!");
+        setTimeout(() => setToast(null), 4000);
+      } else {
+        throw new Error(data.error || "Submission failed");
+      }
+    } catch (error) {
+      console.error("Submit failed:", error);
+      setToast("Failed to submit. Please try again.");
+      setTimeout(() => setToast(null), 4000);
+    }
+
+    setIsSubmitting(false);
+  }, [generatedPrompt, modes, email, isSubmitting]);
+
   // Clear transcript
   const handleClear = useCallback(() => {
     setTranscript("");
@@ -289,32 +299,25 @@ export default function Home() {
     setTranscript("");
     resetTranscript();
     setGeneratedPrompt("");
-    setModifiers([]);
-    setContextInfo("");
     setAttachments([]);
-    setUrlReferences([]);
     setModes([]);
-    setDetailLevel("balanced");
-    setOutputFormat("structured");
     setActiveHistoryId(null);
     setIsEditingOutput(false);
     setToast("Ready for a new idea!");
     setTimeout(() => setToast(null), 2000);
   }, [isListening, stopListening, resetTranscript]);
 
-  // Step progress logic
+  // Step progress logic — simplified to 3 steps
   const steps = [
     { step: 1, label: "Describe", done: transcript.trim().length > 0 },
     { step: 2, label: "Categorize", done: transcript.trim().length > 0 && modes.length > 0 },
-    { step: 3, label: "Customize", done: optionsExpanded || detailLevel !== "balanced" || outputFormat !== "structured" || contextInfo.trim().length > 0 },
-    { step: 4, label: "Structure", done: generatedPrompt.length > 0 },
+    { step: 3, label: "Structure", done: generatedPrompt.length > 0 },
   ];
 
   const isStepActive = (step: number) => {
     if (step === 1) return true;
     if (step === 2) return !!transcript.trim();
-    if (step === 3) return modes.length > 0;
-    if (step === 4) return !!transcript.trim();
+    if (step === 3) return !!transcript.trim();
     return false;
   };
 
@@ -417,6 +420,29 @@ export default function Home() {
               {/* LEFT COLUMN */}
               <div className="space-y-3">
 
+                {/* Email Identification Card */}
+                <div className="bg-bg-card rounded-2xl border border-border-subtle p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-semibold text-text-secondary flex items-center gap-2">
+                      <svg className="w-4 h-4 text-cmg-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      Identify Yourself
+                    </span>
+                    <TooltipIcon
+                      content="Enter your CMG email so your idea is attributed to you. This is saved locally for convenience."
+                      position="left"
+                    />
+                  </div>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your.name@cmgfi.com"
+                    className="w-full px-4 py-2.5 rounded-xl bg-bg-elevated border border-border-subtle text-text-primary text-sm placeholder:text-text-muted/60 focus:outline-none focus:border-cmg-blue/50 focus:ring-1 focus:ring-cmg-blue/30 transition-all"
+                  />
+                </div>
+
                 {/* Your Idea Card */}
                 <div className="bg-bg-card rounded-2xl border border-border-subtle p-4 space-y-4">
                   <div className="flex items-center justify-between">
@@ -465,7 +491,7 @@ export default function Home() {
                           onClick={handleGenerate}
                           disabled={!transcript.trim()}
                           className={`flex-1 h-14 rounded-xl bg-gradient-to-r from-cmg-blue to-cmg-deep text-white font-bold text-sm transition-all hover:brightness-110 hover:shadow-lg hover:shadow-cmg-blue/20 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer ${
-                            transcript.trim() ? "animate-pulse-glow shadow-[0_0_20px_rgba(37,99,235,0.4)]" : ""
+                            transcript.trim() ? "animate-pulse-glow shadow-[0_0_20px_rgba(155,197,61,0.4)]" : ""
                           }`}
                         >
                           <span className="flex items-center justify-center gap-2">
@@ -480,82 +506,16 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Category + Modifiers Card */}
+                {/* Category Card */}
                 <div className="bg-bg-card rounded-2xl border border-border-subtle p-4 space-y-3">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold text-text-secondary">Choose Category & Modifiers</span>
+                    <span className="text-sm font-semibold text-text-secondary">Choose Category</span>
                     <TooltipIcon
                       content="Select categories to tag your idea. LOS & Tech for system improvements, Pipeline for workflow, Marketing for CRM/campaigns, Products for new offerings."
                       position="left"
                     />
                   </div>
                   <PromptModeSelector selected={modes} onChange={setModes} />
-                  <div className="border-t border-border-subtle pt-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-text-muted">+ Add Modifiers</span>
-                      <TooltipIcon
-                        content="Add specific analysis to your idea submission. Check options to include ROI estimates, compliance considerations, affected teams, and more."
-                        position="left"
-                      />
-                    </div>
-                    <ModifierCheckboxes selected={modifiers} onChange={setModifiers} />
-                  </div>
-                </div>
-
-                {/* Customize Output Card */}
-                <div className="bg-bg-card rounded-2xl border border-border-subtle p-4">
-                  <div className="flex items-center justify-between">
-                    <button
-                      onClick={() => setOptionsExpanded(!optionsExpanded)}
-                      className="flex-1 flex items-center justify-between py-1 group"
-                    >
-                      <label className="text-sm font-semibold text-text-secondary flex items-center gap-2 cursor-pointer">
-                        Customize Output
-                        {(detailLevel !== "balanced" || outputFormat !== "structured") && (
-                          <span className="px-2 py-0.5 rounded-full bg-accent-teal/20 text-accent-teal text-xs font-semibold">
-                            Custom
-                          </span>
-                        )}
-                      </label>
-                      <svg
-                        className={`w-5 h-5 text-text-muted transition-transform duration-200 ${optionsExpanded ? "rotate-180" : ""}`}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                    <div className="ml-2">
-                      <TooltipIcon
-                        content="Customize how your idea submission is structured. Choose detail level, output format, and add extra context about your role or team."
-                        position="left"
-                      />
-                    </div>
-                  </div>
-
-                  {!optionsExpanded && (
-                    <div className="flex flex-wrap gap-2 mt-2 text-xs text-text-muted">
-                      <span className="px-2 py-1 rounded bg-bg-elevated/50">{detailLevel === "comprehensive" ? "Detailed" : detailLevel === "concise" ? "Concise" : "Balanced"}</span>
-                      <span className="px-2 py-1 rounded bg-bg-elevated/50">{outputFormat === "bullet-points" ? "Bullets" : outputFormat === "conversational" ? "Natural" : "Structured"}</span>
-                    </div>
-                  )}
-
-                  {optionsExpanded && (
-                    <div className="space-y-4 mt-3 pt-3 border-t border-border-subtle animate-fade_in">
-                      <div className="space-y-3">
-                        <DetailLevelSelector selected={detailLevel} onChange={setDetailLevel} />
-                        <OutputFormatSelector selected={outputFormat} onChange={setOutputFormat} />
-                      </div>
-                      <div className="border-t border-border-subtle pt-3">
-                        <ContextInput value={contextInfo} onChange={setContextInfo} />
-                      </div>
-                      <div className="border-t border-border-subtle pt-3">
-                        <UrlInput references={urlReferences} onReferencesChange={setUrlReferences} />
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
 
@@ -592,7 +552,7 @@ export default function Home() {
                         onClick={handleGenerate}
                         disabled={!transcript.trim()}
                         className={`flex-1 h-14 sm:h-12 rounded-xl bg-gradient-to-r from-cmg-blue to-cmg-deep text-white font-bold text-sm transition-all hover:brightness-110 hover:shadow-lg hover:shadow-cmg-blue/20 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100 disabled:hover:shadow-none cursor-pointer ${
-                          transcript.trim() ? "animate-pulse-glow shadow-[0_0_20px_rgba(37,99,235,0.4)]" : ""
+                          transcript.trim() ? "animate-pulse-glow shadow-[0_0_20px_rgba(155,197,61,0.4)]" : ""
                         }`}
                       >
                         <span className="flex items-center justify-center gap-2">
@@ -623,6 +583,32 @@ export default function Home() {
                       </div>
                       {generatedPrompt && (
                         <div className="flex gap-2">
+                          <button
+                            onClick={handleSubmit}
+                            disabled={isSubmitting}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                              isSubmitting
+                                ? "bg-cmg-blue/50 text-white cursor-wait"
+                                : "bg-cmg-blue text-white hover:brightness-110 shadow-md shadow-cmg-blue/20"
+                            }`}
+                          >
+                            {isSubmitting ? (
+                              <span className="flex items-center gap-1.5">
+                                <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                </svg>
+                                Sending...
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1.5">
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                                Submit
+                              </span>
+                            )}
+                          </button>
                           <button
                             onClick={() => setIsEditingOutput(!isEditingOutput)}
                             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
@@ -699,11 +685,7 @@ export default function Home() {
                             </li>
                             <li className="flex items-start gap-2">
                               <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-cmg-blue/20 text-cmg-blue text-[10px] font-bold flex-shrink-0 mt-0.5">3</span>
-                              <span><strong>Customize</strong> options for more control</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                              <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-cmg-blue/20 text-cmg-blue text-[10px] font-bold flex-shrink-0 mt-0.5">4</span>
-                              <span><strong>Structure</strong> and share your idea</span>
+                              <span><strong>Structure</strong> and share your idea with CMG</span>
                             </li>
                           </ul>
                         </div>

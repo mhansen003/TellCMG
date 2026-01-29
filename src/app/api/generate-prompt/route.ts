@@ -16,12 +16,24 @@ Given the user's input and their selected preferences, generate a detailed, acti
 4. Identifies affected teams, systems, and stakeholders
 5. Includes implementation considerations
 
-Output ONLY the structured idea — no meta-commentary. Be thorough, specific, and include mortgage industry context.`;
+Output ONLY the structured idea — no meta-commentary. Be thorough, specific, and include mortgage industry context. Use clear markdown headers to organize into sections.`;
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { transcript, modes: modesRaw, mode: legacyMode, detailLevel, outputFormat, modifiers, contextInfo, attachments, urlReferences } = body;
+    const {
+      transcript,
+      modes: modesRaw,
+      mode: legacyMode,
+      email,
+      attachments,
+      // Accept but ignore legacy fields gracefully
+      detailLevel: _dl,
+      outputFormat: _of,
+      modifiers: _mod,
+      contextInfo: _ctx,
+      urlReferences: _urls,
+    } = body;
     const modes: string[] = Array.isArray(modesRaw) ? modesRaw : (legacyMode ? [legacyMode] : []);
 
     const modeDescriptions: Record<string, string> = {
@@ -75,64 +87,23 @@ export async function POST(request: NextRequest) {
       "policy": "internal policy and procedure updates",
     };
 
-    const detailDescriptions: Record<string, string> = {
-      concise: "Keep the idea brief and focused.",
-      balanced: "Provide moderate detail — enough to evaluate.",
-      comprehensive: "Be thorough. Cover problem, solution, impact, risks, and implementation.",
-    };
-
-    const formatDescriptions: Record<string, string> = {
-      structured: "Use clear markdown headers to organize into sections.",
-      conversational: "Write naturally as if pitching to a colleague.",
-      "bullet-points": "Use bullet points for easy scanning.",
-    };
-
-    const modifierDescriptions: Record<string, string> = {
-      "step-by-step": "Break into numbered implementation steps",
-      "examples": "Include practical mortgage industry examples",
-      "alternatives": "Present 2-3 alternative approaches",
-      "best-practices": "Highlight mortgage industry best practices",
-      "explain-reasoning": "Explain the why behind decisions",
-      "roi-impact": "Include estimated ROI and business impact",
-      "borrower-impact": "Describe borrower experience impact",
-      "compliance-check": "Address regulatory considerations",
-      "affected-teams": "Identify all affected teams",
-      "implementation-effort": "Estimate complexity (low/medium/high)",
-      "timeline": "Include rough implementation timeline",
-      "risk-assessment": "Identify risks and mitigations",
-      "metrics": "Define success metrics and KPIs",
-      "stakeholders": "Consider all stakeholder perspectives",
-    };
-
-    const selectedModifiers = modifiers
-      .map((id: string) => modifierDescriptions[id])
-      .filter(Boolean)
-      .join("\n- ");
-
     interface AttachmentData { name: string; content: string; }
     const attachmentSection = attachments && attachments.length > 0
       ? "\n\nATTACHED FILES:\n" + attachments.map((a: AttachmentData) => "--- " + a.name + " ---\n" + a.content.slice(0, 10000) + "\n").join("\n")
-      : "";
-
-    interface UrlReferenceData { title: string; content: string; type: string; url: string; }
-    const urlSection = urlReferences && urlReferences.length > 0
-      ? "\n\nREFERENCED URLS:\n" + urlReferences.map((r: UrlReferenceData) => "--- " + r.title + " (" + r.url + ") ---\n" + r.content.slice(0, 15000) + "\n").join("\n")
       : "";
 
     const modeList = modes.length > 0
       ? modes.map((m: string) => m + " (" + (modeDescriptions[m] || "general") + ")").join(" + ")
       : "general improvement idea";
 
+    const submitterLine = email ? "\nSUBMITTED BY: " + email + "\n" : "";
+
     const userPrompt = "Transform this loan officer's idea into a structured submission:\n\n"
       + "IDEA: \"" + transcript + "\"\n\n"
-      + "CATEGORIES: " + modeList + "\n\n"
-      + "DETAIL: " + (detailDescriptions[detailLevel] || detailDescriptions.balanced) + "\n"
-      + "FORMAT: " + (formatDescriptions[outputFormat] || formatDescriptions.structured) + "\n"
-      + (contextInfo ? "\nCONTEXT: " + contextInfo + "\n" : "")
+      + "CATEGORIES: " + modeList + "\n"
+      + submitterLine
       + attachmentSection
-      + urlSection
-      + (selectedModifiers ? "\nREQUIREMENTS:\n- " + selectedModifiers : "")
-      + "\n\nGenerate a detailed, well-structured idea submission.";
+      + "\n\nGenerate a detailed, well-structured idea submission using clear markdown headers.";
 
     if (!process.env.OPENROUTER_API_KEY) {
       const modeLabel = modes.length > 0
@@ -142,10 +113,9 @@ export async function POST(request: NextRequest) {
         ? modes.map(m => modeDescriptions[m] || "improving CMG processes").join("; ")
         : "improving CMG tools and processes";
 
-      let p = "# " + modeLabel + " Idea\n\n## Overview\n" + transcript + "\n\n## Category\nFocused on " + modeContext + ".\n\n";
-      if (contextInfo) p += "## Context\n" + contextInfo + "\n\n";
-      p += "## Detail Level\n" + (detailDescriptions[detailLevel] || detailDescriptions.balanced) + "\n\n";
-      if (selectedModifiers) p += "## Requirements\n- " + selectedModifiers + "\n\n";
+      let p = "# " + modeLabel + " Idea\n\n";
+      if (email) p += "**Submitted by:** " + email + "\n\n";
+      p += "## Overview\n" + transcript + "\n\n## Category\nFocused on " + modeContext + ".\n\n";
       p += "## Evaluation Criteria\n- Problem/opportunity clearly stated\n- Solution is specific and actionable\n- Benefits quantified where possible";
       return NextResponse.json({ prompt: p });
     }

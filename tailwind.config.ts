@@ -10,18 +10,18 @@ const config: Config = {
     extend: {
       colors: {
         bg: {
-          primary: "#0a1628",
-          secondary: "#0f1f38",
-          card: "#162a4a",
-          elevated: "#1e3a5f",
+          primary: "#1a2332",
+          secondary: "#1f2b3d",
+          card: "#243044",
+          elevated: "#2b3e50",
         },
         cmg: {
-          blue: "#2563eb",
-          navy: "#1e3a5f",
+          blue: "#9bc53d",
+          navy: "#2b3e50",
           gold: "#d4a843",
-          light: "#e8c87a",
-          deep: "#1e40af",
-          glow: "rgba(37, 99, 235, 0.15)",
+          light: "#b4d95e",
+          deep: "#8ab62f",
+          glow: "rgba(155, 197, 61, 0.15)",
         },
         accent: {
           purple: "#a855f7",
@@ -37,7 +37,7 @@ const config: Config = {
         },
         border: {
           subtle: "rgba(148, 163, 184, 0.1)",
-          cmg: "rgba(37, 99, 235, 0.3)",
+          cmg: "rgba(155, 197, 61, 0.3)",
         },
       },
       fontFamily: {
@@ -62,17 +62,17 @@ const config: Config = {
           "50%": { transform: "translateY(-5px)" },
         },
         glow: {
-          "0%, 100%": { boxShadow: "0 0 20px rgba(37, 99, 235, 0.3)" },
-          "50%": { boxShadow: "0 0 40px rgba(37, 99, 235, 0.5)" },
+          "0%, 100%": { boxShadow: "0 0 20px rgba(155, 197, 61, 0.3)" },
+          "50%": { boxShadow: "0 0 40px rgba(155, 197, 61, 0.5)" },
         },
         "pulse-glow": {
           "0%, 100%": {
-            boxShadow: "0 0 15px rgba(37, 99, 235, 0.3), 0 0 30px rgba(37, 99, 235, 0.1)",
-            borderColor: "rgba(37, 99, 235, 0.4)"
+            boxShadow: "0 0 15px rgba(155, 197, 61, 0.3), 0 0 30px rgba(155, 197, 61, 0.1)",
+            borderColor: "rgba(155, 197, 61, 0.4)"
           },
           "50%": {
-            boxShadow: "0 0 25px rgba(37, 99, 235, 0.5), 0 0 50px rgba(37, 99, 235, 0.2)",
-            borderColor: "rgba(37, 99, 235, 0.7)"
+            boxShadow: "0 0 25px rgba(155, 197, 61, 0.5), 0 0 50px rgba(155, 197, 61, 0.2)",
+            borderColor: "rgba(155, 197, 61, 0.7)"
           },
         },
       },
@@ -86,8 +86,8 @@ const config: Config = {
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "cmg-gradient": "linear-gradient(135deg, #2563eb 0%, #1e40af 50%, #1e3a5f 100%)",
-        "dark-gradient": "linear-gradient(180deg, #0a1628 0%, #0f1f38 100%)",
+        "cmg-gradient": "linear-gradient(135deg, #9bc53d 0%, #8ab62f 50%, #2b3e50 100%)",
+        "dark-gradient": "linear-gradient(180deg, #1a2332 0%, #1f2b3d 100%)",
       },
     },
   },
