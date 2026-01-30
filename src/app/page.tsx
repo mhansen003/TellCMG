@@ -307,19 +307,6 @@ export default function Home() {
     setTimeout(() => setToast(null), 2000);
   }, [isListening, stopListening, resetTranscript]);
 
-  // Step progress logic — simplified to 3 steps
-  const steps = [
-    { step: 1, label: "Describe", done: transcript.trim().length > 0 },
-    { step: 2, label: "Categorize", done: transcript.trim().length > 0 && modes.length > 0 },
-    { step: 3, label: "Structure", done: generatedPrompt.length > 0 },
-  ];
-
-  const isStepActive = (step: number) => {
-    if (step === 1) return true;
-    if (step === 2) return !!transcript.trim();
-    if (step === 3) return !!transcript.trim();
-    return false;
-  };
 
   return (
     <div className="relative z-10 min-h-screen">
@@ -337,366 +324,243 @@ export default function Home() {
       {/* Header */}
       <Header onAboutClick={() => setShowAbout(true)} />
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 pb-6 sm:pb-8">
+      {/* Main Content — Single Column */}
+      <div className="max-w-2xl mx-auto px-3 sm:px-4 pb-6 sm:pb-8">
 
-            {/* Browser Warning */}
-            {showBrowserWarning && <BrowserWarning />}
+        {/* Browser Warning */}
+        {showBrowserWarning && <BrowserWarning />}
 
-            {/* Mic Hero Section */}
-            <section className="flex flex-col items-center py-1 sm:py-3 mb-3 sm:mb-5">
-              <div className="flex items-center gap-6 sm:gap-10">
-                <VoiceRecorder
-                  isListening={isListening}
-                  isSupported={isSupported}
-                  interimTranscript={interimTranscript}
-                  onStart={startListening}
-                  onStop={stopListening}
-                />
-                <div className="flex flex-col items-center gap-1">
-                  <button
-                    onClick={() => setShowInterview(true)}
-                    className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center transition-all duration-300 cursor-pointer group bg-bg-card hover:bg-bg-elevated border-2 border-accent-purple/40 hover:border-accent-purple shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_30px_rgba(168,85,247,0.5)]"
-                    aria-label="Start AI interview"
-                    title="AI-assisted interview — refine your idea through conversation"
-                  >
-                    <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-accent-purple/30 to-accent-purple/20 blur-sm animate-pulse" />
-                    <svg
-                      className="w-8 h-8 sm:w-10 sm:h-10 relative z-10 text-text-secondary group-hover:text-accent-purple transition-colors"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                    </svg>
-                  </button>
-                  <p className="text-xs font-semibold text-text-muted">Interview</p>
+        {/* Mic Hero Section */}
+        <section className="flex flex-col items-center py-1 sm:py-3 mb-3 sm:mb-5">
+          <div className="flex items-center gap-6 sm:gap-10">
+            <VoiceRecorder
+              isListening={isListening}
+              isSupported={isSupported}
+              interimTranscript={interimTranscript}
+              onStart={startListening}
+              onStop={stopListening}
+            />
+            <div className="flex flex-col items-center gap-1">
+              <button
+                onClick={() => setShowInterview(true)}
+                className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center transition-all duration-300 cursor-pointer group bg-bg-card hover:bg-bg-elevated border-2 border-accent-purple/40 hover:border-accent-purple shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_30px_rgba(168,85,247,0.5)]"
+                aria-label="Start AI interview"
+                title="AI-assisted interview — refine your idea through conversation"
+              >
+                <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-accent-purple/30 to-accent-purple/20 blur-sm animate-pulse" />
+                <svg
+                  className="w-8 h-8 sm:w-10 sm:h-10 relative z-10 text-text-secondary group-hover:text-accent-purple transition-colors"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              </button>
+              <p className="text-xs font-semibold text-text-muted">Interview</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Single Column Flow */}
+        <div className="space-y-3">
+
+          {/* Email Identification Card */}
+          <div className="bg-bg-card rounded-2xl border border-border-subtle p-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-semibold text-text-secondary flex items-center gap-2">
+                <svg className="w-4 h-4 text-cmg-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                Identify Yourself
+              </span>
+              <TooltipIcon
+                content="Enter your CMG email so your idea is attributed to you. This is saved locally for convenience."
+                position="left"
+              />
+            </div>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="your.name@cmgfi.com"
+              className="w-full px-4 py-2.5 rounded-xl bg-bg-elevated border border-border-subtle text-text-primary text-sm placeholder:text-text-muted/60 focus:outline-none focus:border-cmg-blue/50 focus:ring-1 focus:ring-cmg-blue/30 transition-all"
+            />
+          </div>
+
+          {/* Your Idea Card */}
+          <div className="bg-bg-card rounded-2xl border border-border-subtle p-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-text-secondary">Your Idea</span>
+              <TooltipIcon
+                content="Type your idea directly, or use the microphone above to speak. Your voice is converted to text in real-time."
+                position="left"
+              />
+            </div>
+            <TranscriptEditor
+              value={transcript}
+              onChange={setTranscript}
+              onClear={handleClear}
+              isListening={isListening}
+              attachments={attachments}
+              onAttachmentsChange={setAttachments}
+            />
+          </div>
+
+          {/* Structure My Idea Button */}
+          <div className="flex gap-2">
+            {isGenerating ? (
+              <>
+                <div className="flex-1 h-14 rounded-xl bg-gradient-to-r from-cmg-blue to-cmg-deep text-white font-bold text-sm flex items-center justify-center gap-2">
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Structuring...
                 </div>
-              </div>
-            </section>
+                <button
+                  onClick={handleCancelGeneration}
+                  className="h-14 px-5 rounded-xl bg-bg-card border-2 border-accent-rose/50 text-accent-rose font-semibold text-sm transition-all hover:bg-accent-rose/10 active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={handleGenerate}
+                disabled={!transcript.trim()}
+                className={`flex-1 h-14 rounded-xl bg-gradient-to-r from-cmg-blue to-cmg-deep text-white font-bold text-sm transition-all hover:brightness-110 hover:shadow-lg hover:shadow-cmg-blue/20 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer ${
+                  transcript.trim() ? "animate-pulse-glow shadow-[0_0_20px_rgba(155,197,61,0.4)]" : ""
+                }`}
+              >
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  Structure My Idea
+                </span>
+              </button>
+            )}
+          </div>
 
-            {/* Content with Left Rail + Two-Column Grid */}
-            <div className="flex gap-4 sm:gap-6 items-start">
+          {/* Category Card */}
+          <div className="bg-bg-card rounded-2xl border border-border-subtle p-4 space-y-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold text-text-secondary">Choose Category</span>
+              <TooltipIcon
+                content="Select categories to tag your idea. LOS & Tech for system improvements, Pipeline for workflow, Marketing for CRM/campaigns, Products for new offerings."
+                position="left"
+              />
+            </div>
+            <PromptModeSelector selected={modes} onChange={setModes} />
+          </div>
 
-            {/* Vertical Progress Rail */}
-            <aside className="hidden lg:flex flex-col items-center gap-0 sticky top-24 self-start pt-1 pr-2">
-              {steps.map((item, idx) => (
-                <div key={item.step} className="flex flex-col items-center">
-                  <div
-                    className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                      item.done
-                        ? "bg-accent-green text-white"
-                        : isStepActive(item.step)
-                          ? "bg-gradient-to-br from-cmg-blue to-cmg-deep text-white"
-                          : "bg-bg-elevated text-text-muted border border-border-subtle"
-                    }`}
-                  >
-                    {item.done ? (
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          {/* Output Panel — only visible when generating or has content */}
+          {(isGenerating || generatedPrompt) && (
+            <div className="bg-bg-card rounded-2xl border border-border-subtle overflow-hidden animate-fade_in">
+              <div className="flex-shrink-0 px-5 py-4 border-b border-border-subtle bg-gradient-to-r from-cmg-blue/10 to-transparent">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cmg-blue to-cmg-deep flex items-center justify-center">
+                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
-                    ) : (
-                      item.step
-                    )}
-                  </div>
-                  <span className={`text-[10px] mt-1 font-semibold whitespace-nowrap ${
-                    item.done ? "text-accent-green" : isStepActive(item.step) ? "text-cmg-blue" : "text-text-muted"
-                  }`}>
-                    {item.label}
-                  </span>
-                  {idx < steps.length - 1 && (
-                    <div className={`w-0.5 h-8 my-1 rounded-full transition-colors ${
-                      item.done ? "bg-accent-green" : "bg-border-subtle"
-                    }`} />
-                  )}
-                </div>
-              ))}
-            </aside>
-
-            {/* Two-Column Grid */}
-            <div className="flex-1 min-w-0 grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 items-start">
-
-              {/* LEFT COLUMN */}
-              <div className="space-y-3">
-
-                {/* Email Identification Card */}
-                <div className="bg-bg-card rounded-2xl border border-border-subtle p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-semibold text-text-secondary flex items-center gap-2">
-                      <svg className="w-4 h-4 text-cmg-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                      Identify Yourself
-                    </span>
-                    <TooltipIcon
-                      content="Enter your CMG email so your idea is attributed to you. This is saved locally for convenience."
-                      position="left"
-                    />
-                  </div>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your.name@cmgfi.com"
-                    className="w-full px-4 py-2.5 rounded-xl bg-bg-elevated border border-border-subtle text-text-primary text-sm placeholder:text-text-muted/60 focus:outline-none focus:border-cmg-blue/50 focus:ring-1 focus:ring-cmg-blue/30 transition-all"
-                  />
-                </div>
-
-                {/* Your Idea Card */}
-                <div className="bg-bg-card rounded-2xl border border-border-subtle p-4 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-text-secondary">Your Idea</span>
-                    <TooltipIcon
-                      content="Type your idea directly, or use the microphone above to speak. Your voice is converted to text in real-time."
-                      position="left"
-                    />
-                  </div>
-                  <TranscriptEditor
-                    value={transcript}
-                    onChange={setTranscript}
-                    onClear={handleClear}
-                    isListening={isListening}
-                    attachments={attachments}
-                    onAttachmentsChange={setAttachments}
-                  />
-                </div>
-
-                {/* Mobile Action Buttons */}
-                <div className="lg:hidden space-y-2">
-                  <span className="text-sm font-semibold text-text-secondary">Structure Your Idea</span>
-                  <div className="flex gap-2">
-                    {isGenerating ? (
-                      <>
-                        <div className="flex-1 h-14 rounded-xl bg-gradient-to-r from-cmg-blue to-cmg-deep text-white font-bold text-sm flex items-center justify-center gap-2">
-                          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                          </svg>
-                          Structuring...
-                        </div>
-                        <button
-                          onClick={handleCancelGeneration}
-                          className="h-14 px-4 rounded-xl bg-bg-card border-2 border-accent-rose/50 text-accent-rose font-semibold text-sm transition-all hover:bg-accent-rose/10 active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                          Cancel
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          onClick={handleGenerate}
-                          disabled={!transcript.trim()}
-                          className={`flex-1 h-14 rounded-xl bg-gradient-to-r from-cmg-blue to-cmg-deep text-white font-bold text-sm transition-all hover:brightness-110 hover:shadow-lg hover:shadow-cmg-blue/20 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer ${
-                            transcript.trim() ? "animate-pulse-glow shadow-[0_0_20px_rgba(155,197,61,0.4)]" : ""
-                          }`}
-                        >
-                          <span className="flex items-center justify-center gap-2">
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
-                            Structure My Idea
-                          </span>
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                {/* Category Card */}
-                <div className="bg-bg-card rounded-2xl border border-border-subtle p-4 space-y-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold text-text-secondary">Choose Category</span>
-                    <TooltipIcon
-                      content="Select categories to tag your idea. LOS & Tech for system improvements, Pipeline for workflow, Marketing for CRM/campaigns, Products for new offerings."
-                      position="left"
-                    />
-                  </div>
-                  <PromptModeSelector selected={modes} onChange={setModes} />
-                </div>
-              </div>
-
-              {/* RIGHT COLUMN */}
-              <div className="flex flex-col gap-3">
-                {/* Desktop Action Buttons */}
-                <div className="hidden lg:block flex-shrink-0 space-y-2">
-                  <span className="text-sm font-semibold text-text-secondary">Structure Your Idea</span>
-                </div>
-                <div className="hidden lg:flex gap-2 flex-shrink-0">
-                  {isGenerating ? (
-                    <>
-                      <div className="flex-1 h-14 sm:h-12 rounded-xl bg-gradient-to-r from-cmg-blue to-cmg-deep text-white font-bold text-sm flex items-center justify-center gap-2">
-                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                        </svg>
-                        Structuring...
-                      </div>
-                      <button
-                        onClick={handleCancelGeneration}
-                        className="h-14 sm:h-12 px-5 rounded-xl bg-bg-card border-2 border-accent-rose/50 text-accent-rose font-semibold text-sm transition-all hover:bg-accent-rose/10 hover:border-accent-rose active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2"
-                        title="Cancel generation"
-                      >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                        Cancel
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        onClick={handleGenerate}
-                        disabled={!transcript.trim()}
-                        className={`flex-1 h-14 sm:h-12 rounded-xl bg-gradient-to-r from-cmg-blue to-cmg-deep text-white font-bold text-sm transition-all hover:brightness-110 hover:shadow-lg hover:shadow-cmg-blue/20 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100 disabled:hover:shadow-none cursor-pointer ${
-                          transcript.trim() ? "animate-pulse-glow shadow-[0_0_20px_rgba(155,197,61,0.4)]" : ""
-                        }`}
-                      >
-                        <span className="flex items-center justify-center gap-2">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                          </svg>
-                          Structure My Idea
-                        </span>
-                      </button>
-                    </>
-                  )}
-                </div>
-
-                {/* Output Panel */}
-                <div className="bg-bg-card rounded-2xl border border-border-subtle overflow-hidden flex flex-col h-[500px] lg:h-[calc(100vh-280px)] lg:max-h-[700px] lg:min-h-[400px]">
-                  <div className="flex-shrink-0 px-5 py-4 border-b border-border-subtle bg-gradient-to-r from-cmg-blue/10 to-transparent">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cmg-blue to-cmg-deep flex items-center justify-center">
-                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <h2 className="text-base font-bold text-text-primary">Structured Idea</h2>
-                          <p className="text-xs text-text-muted">Powered by AI</p>
-                        </div>
-                      </div>
-                      {generatedPrompt && (
-                        <div className="flex gap-2">
-                          <button
-                            onClick={handleSubmit}
-                            disabled={isSubmitting}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                              isSubmitting
-                                ? "bg-cmg-blue/50 text-white cursor-wait"
-                                : "bg-cmg-blue text-white hover:brightness-110 shadow-md shadow-cmg-blue/20"
-                            }`}
-                          >
-                            {isSubmitting ? (
-                              <span className="flex items-center gap-1.5">
-                                <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                                </svg>
-                                Sending...
-                              </span>
-                            ) : (
-                              <span className="flex items-center gap-1.5">
-                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                </svg>
-                                Submit
-                              </span>
-                            )}
-                          </button>
-                          <button
-                            onClick={() => setIsEditingOutput(!isEditingOutput)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                              isEditingOutput
-                                ? "bg-accent-purple text-white"
-                                : "bg-bg-elevated text-text-secondary hover:text-accent-purple"
-                            }`}
-                          >
-                            {isEditingOutput ? "View" : "Edit"}
-                          </button>
-                          <button
-                            onClick={handleCopy}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                              copied
-                                ? "bg-accent-green text-white"
-                                : "bg-bg-elevated text-text-secondary hover:text-cmg-blue"
-                            }`}
-                          >
-                            {copied ? "Copied!" : "Copy"}
-                          </button>
-                          <button
-                            onClick={handleReset}
-                            className="px-3 py-1.5 rounded-lg bg-bg-elevated text-text-secondary hover:text-accent-rose text-xs font-semibold transition-all"
-                          >
-                            Clear
-                          </button>
-                        </div>
-                      )}
+                    </div>
+                    <div>
+                      <h2 className="text-base font-bold text-text-primary">Structured Idea</h2>
+                      <p className="text-xs text-text-muted">Powered by AI</p>
                     </div>
                   </div>
-
-                  <div className="p-4 sm:p-5 flex-1 min-h-0 overflow-y-auto">
-                    {isGenerating ? (
-                      <div className="flex flex-col items-center justify-center h-64 text-text-muted">
-                        <div className="relative w-16 h-16 mb-4">
-                          <div className="absolute inset-0 rounded-full border-4 border-cmg-blue/20" />
-                          <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-cmg-blue animate-spin" />
-                        </div>
-                        <p className="text-sm font-medium">AI is structuring your idea...</p>
-                      </div>
-                    ) : generatedPrompt ? (
-                      <div className="relative h-full">
-                        {isEditingOutput ? (
-                          <textarea
-                            value={generatedPrompt}
-                            onChange={(e) => setGeneratedPrompt(e.target.value)}
-                            className="w-full h-full min-h-[300px] p-4 rounded-xl bg-bg-elevated border-2 border-accent-purple/30 text-text-primary font-mono text-sm resize-none focus:outline-none focus:border-accent-purple/50 transition-colors"
-                            placeholder="Edit your submission..."
-                          />
+                  {generatedPrompt && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleSubmit}
+                        disabled={isSubmitting}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                          isSubmitting
+                            ? "bg-cmg-blue/50 text-white cursor-wait"
+                            : "bg-cmg-blue text-white hover:brightness-110 shadow-md shadow-cmg-blue/20"
+                        }`}
+                      >
+                        {isSubmitting ? (
+                          <span className="flex items-center gap-1.5">
+                            <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                            </svg>
+                            Sending...
+                          </span>
                         ) : (
-                          <FormattedPrompt content={generatedPrompt} />
+                          <span className="flex items-center gap-1.5">
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            Submit
+                          </span>
                         )}
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center text-text-muted py-8">
-                        <svg className="w-12 h-12 mb-3 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <p className="text-sm font-medium mb-1">Your structured idea will appear here</p>
-                        <p className="text-xs mb-6">Speak or type your idea, then click Structure</p>
-
-                        <div className="w-full max-w-xs border-t border-border-subtle pt-4">
-                          <h3 className="text-xs font-semibold text-text-muted mb-3 flex items-center justify-center gap-1.5">
-                            <span className="text-cmg-blue">🚀</span> Quick Start Guide
-                          </h3>
-                          <ul className="text-xs text-text-muted space-y-2 text-left">
-                            <li className="flex items-start gap-2">
-                              <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-cmg-blue/20 text-cmg-blue text-[10px] font-bold flex-shrink-0 mt-0.5">1</span>
-                              <span><strong>Describe</strong> your idea using voice or text</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                              <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-cmg-blue/20 text-cmg-blue text-[10px] font-bold flex-shrink-0 mt-0.5">2</span>
-                              <span><strong>Choose</strong> a category that matches your idea</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                              <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-cmg-blue/20 text-cmg-blue text-[10px] font-bold flex-shrink-0 mt-0.5">3</span>
-                              <span><strong>Structure</strong> and share your idea with CMG</span>
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                      </button>
+                      <button
+                        onClick={() => setIsEditingOutput(!isEditingOutput)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                          isEditingOutput
+                            ? "bg-accent-purple text-white"
+                            : "bg-bg-elevated text-text-secondary hover:text-accent-purple"
+                        }`}
+                      >
+                        {isEditingOutput ? "View" : "Edit"}
+                      </button>
+                      <button
+                        onClick={handleCopy}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                          copied
+                            ? "bg-accent-green text-white"
+                            : "bg-bg-elevated text-text-secondary hover:text-cmg-blue"
+                        }`}
+                      >
+                        {copied ? "Copied!" : "Copy"}
+                      </button>
+                      <button
+                        onClick={handleReset}
+                        className="px-3 py-1.5 rounded-lg bg-bg-elevated text-text-secondary hover:text-accent-rose text-xs font-semibold transition-all"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
+              <div className="p-4 sm:p-5">
+                {isGenerating ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-text-muted">
+                    <div className="relative w-16 h-16 mb-4">
+                      <div className="absolute inset-0 rounded-full border-4 border-cmg-blue/20" />
+                      <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-cmg-blue animate-spin" />
+                    </div>
+                    <p className="text-sm font-medium">AI is structuring your idea...</p>
+                  </div>
+                ) : generatedPrompt ? (
+                  <div className="relative">
+                    {isEditingOutput ? (
+                      <textarea
+                        value={generatedPrompt}
+                        onChange={(e) => setGeneratedPrompt(e.target.value)}
+                        className="w-full min-h-[300px] p-4 rounded-xl bg-bg-elevated border-2 border-accent-purple/30 text-text-primary font-mono text-sm resize-none focus:outline-none focus:border-accent-purple/50 transition-colors"
+                        placeholder="Edit your submission..."
+                      />
+                    ) : (
+                      <FormattedPrompt content={generatedPrompt} />
+                    )}
+                  </div>
+                ) : null}
+              </div>
             </div>
-            </div>
+          )}
+        </div>
       </div>
 
       {/* Interview Modal */}
