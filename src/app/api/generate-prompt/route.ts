@@ -143,8 +143,8 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const errMsg = error instanceof Error ? error.message : String(error);
     const errStack = error instanceof Error ? error.stack : undefined;
-    const errCause = error instanceof Error && (error as Record<string, unknown>).cause
-      ? JSON.stringify((error as Record<string, unknown>).cause, null, 2)
+    const errCause = error instanceof Error && (error as unknown as Record<string, unknown>).cause
+      ? JSON.stringify((error as unknown as Record<string, unknown>).cause, null, 2)
       : undefined;
     console.error("Generate idea error:", errMsg);
     console.error("Stack:", errStack);
