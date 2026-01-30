@@ -7,16 +7,22 @@ const openrouter = createOpenAI({
   apiKey: process.env.OPENROUTER_API_KEY || "",
 });
 
-const SYSTEM_PROMPT = `You are an expert idea refinement assistant for CMG Financial. Your job is to take a loan officer's rough idea and transform it into a well-structured, actionable idea submission that leadership and product teams can evaluate.
+const SYSTEM_PROMPT = `You are an expert idea refinement assistant for CMG Financial. Employees submit ideas to the IT Product team through you. Your job is to take an employee's rough idea and transform it into a compelling, well-structured business case that the product team can evaluate and prioritize.
 
-Given the user's input and their selected preferences, generate a detailed, actionable idea submission that:
-1. Clearly states the problem or opportunity
-2. Describes the proposed solution or improvement
-3. Explains expected benefits and impact
-4. Identifies affected teams, systems, and stakeholders
-5. Includes implementation considerations
+Given the user's input and their selected categories, generate a structured idea submission that includes:
+1. **Problem or Opportunity** — What pain point, gap, or opportunity exists today?
+2. **Proposed Solution** — What should change? Describe the desired outcome, not technical implementation.
+3. **Business Case & ROI** — Why does this matter? Quantify impact where possible (time saved, revenue gained, errors reduced, borrower experience improved).
+4. **Stakeholders & Who Benefits** — Which teams, roles, or borrower segments are affected?
+5. **Value & Quick Wins** — What are the immediate wins? What's the long-term strategic value?
 
-Output ONLY the structured idea — no meta-commentary. Be thorough, specific, and include mortgage industry context. Use clear markdown headers to organize into sections.`;
+IMPORTANT RULES:
+- Do NOT include implementation details, technical architecture, development phases, timelines, or migration plans. The product team handles that.
+- Focus on the "what" and "why," not the "how."
+- Write from the perspective of someone who uses these tools daily and understands the business impact.
+- Be specific with mortgage industry context (LOS, pipeline, conditions, closing, borrower experience, etc.).
+- Use clear markdown headers (##) to organize sections.
+- Output ONLY the structured idea — no meta-commentary or preamble.`;
 
 export async function POST(request: NextRequest) {
   try {
@@ -98,12 +104,12 @@ export async function POST(request: NextRequest) {
 
     const submitterLine = email ? "\nSUBMITTED BY: " + email + "\n" : "";
 
-    const userPrompt = "Transform this loan officer's idea into a structured submission:\n\n"
+    const userPrompt = "Transform this CMG employee's idea into a business case for the IT Product team:\n\n"
       + "IDEA: \"" + transcript + "\"\n\n"
       + "CATEGORIES: " + modeList + "\n"
       + submitterLine
       + attachmentSection
-      + "\n\nGenerate a detailed, well-structured idea submission using clear markdown headers.";
+      + "\n\nGenerate a compelling idea submission focused on business value, ROI, stakeholders, and wins. Do NOT include implementation details or technical phases.";
 
     if (!process.env.OPENROUTER_API_KEY) {
       const modeLabel = modes.length > 0
@@ -115,8 +121,11 @@ export async function POST(request: NextRequest) {
 
       let p = "# " + modeLabel + " Idea\n\n";
       if (email) p += "**Submitted by:** " + email + "\n\n";
-      p += "## Overview\n" + transcript + "\n\n## Category\nFocused on " + modeContext + ".\n\n";
-      p += "## Evaluation Criteria\n- Problem/opportunity clearly stated\n- Solution is specific and actionable\n- Benefits quantified where possible";
+      p += "## Problem or Opportunity\n" + transcript + "\n\n";
+      p += "## Category\nFocused on " + modeContext + ".\n\n";
+      p += "## Business Case & ROI\n- _What time, cost, or error reduction does this enable?_\n- _How does this improve the borrower or employee experience?_\n\n";
+      p += "## Stakeholders & Who Benefits\n- _Which teams, roles, or borrower segments are affected?_\n\n";
+      p += "## Value & Quick Wins\n- _What are the immediate benefits?_\n- _What's the long-term strategic value?_";
       return NextResponse.json({ prompt: p });
     }
 
