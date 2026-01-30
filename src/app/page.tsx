@@ -526,8 +526,8 @@ export default function Home() {
                         disabled={isSubmitting}
                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                           isSubmitting
-                            ? "bg-cmg-blue/50 text-white cursor-wait"
-                            : "bg-cmg-blue text-white hover:brightness-110 shadow-md shadow-cmg-blue/20"
+                            ? "bg-accent-blue/50 text-white cursor-wait"
+                            : "bg-accent-blue text-white hover:brightness-110 shadow-md shadow-accent-blue/30 animate-pulse-glow-blue"
                         }`}
                       >
                         {isSubmitting ? (
@@ -653,7 +653,7 @@ export default function Home() {
                   </div>
                   {generatedPrompt && (
                     <div className="flex gap-2 flex-wrap justify-end">
-                      <button onClick={handleSubmit} disabled={isSubmitting} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${isSubmitting ? "bg-cmg-blue/50 text-white cursor-wait" : "bg-cmg-blue text-white hover:brightness-110"}`}>
+                      <button onClick={handleSubmit} disabled={isSubmitting} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${isSubmitting ? "bg-accent-blue/50 text-white cursor-wait" : "bg-accent-blue text-white hover:brightness-110 animate-pulse-glow-blue"}`}>
                         {isSubmitting ? "Sending..." : "Submit"}
                       </button>
                       <button onClick={handleCopy} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${copied ? "bg-accent-green text-white" : "bg-bg-elevated text-text-secondary"}`}>
