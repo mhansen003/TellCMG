@@ -576,6 +576,16 @@ export default function Home() {
                         )}
                       </button>
                       <button
+                        onClick={() => setShowInterview(true)}
+                        className="px-3 py-1.5 rounded-lg bg-bg-elevated text-text-secondary hover:text-cmg-blue text-xs font-semibold transition-all flex items-center gap-1"
+                        title="Refine your idea through AI conversation"
+                      >
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                        Revise
+                      </button>
+                      <button
                         onClick={() => setIsEditingOutput(!isEditingOutput)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                           isEditingOutput
@@ -683,6 +693,9 @@ export default function Home() {
                     <div className="flex gap-1.5 flex-shrink-0">
                       <button onClick={handleSubmit} disabled={isSubmitting} className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all min-h-[36px] ${isSubmitting ? "bg-accent-blue/50 text-white cursor-wait" : "bg-accent-blue text-white hover:brightness-110 animate-pulse-glow-blue"}`}>
                         {isSubmitting ? "..." : "Submit"}
+                      </button>
+                      <button onClick={() => setShowInterview(true)} className="px-3 py-2 rounded-lg bg-bg-elevated text-text-secondary hover:text-cmg-blue text-xs font-semibold transition-all min-h-[36px]" title="Revise with AI">
+                        Revise
                       </button>
                       <button onClick={handleCopy} className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all min-h-[36px] ${copied ? "bg-accent-green text-white" : "bg-bg-elevated text-text-secondary"}`}>
                         {copied ? "✓" : "Copy"}
