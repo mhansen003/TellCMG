@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, DragEvent } from "react";
+import { useState, useCallback, useEffect, useRef, DragEvent } from "react";
 
 export interface Attachment {
   id: string;
@@ -42,6 +42,14 @@ export default function TranscriptEditor({
   const [copied, setCopied] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [dragError, setDragError] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-scroll textarea to bottom while recording so latest words are visible
+  useEffect(() => {
+    if (isListening && textareaRef.current) {
+      textareaRef.current.scrollTop = textareaRef.current.scrollHeight;
+    }
+  }, [value, isListening]);
 
   const wordCount = value.trim() ? value.trim().split(/\s+/).length : 0;
 
@@ -187,6 +195,7 @@ export default function TranscriptEditor({
           onDragLeave={handleDragLeave}
         >
           <textarea
+            ref={textareaRef}
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={

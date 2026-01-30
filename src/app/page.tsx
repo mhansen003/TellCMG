@@ -119,12 +119,17 @@ export default function Home() {
     }
   }, [modes, email]);
 
-  // Sync speech transcript
+  // Sync speech transcript (final results only)
   useEffect(() => {
     if (speechTranscript) {
       setTranscript(speechTranscript);
     }
   }, [speechTranscript]);
+
+  // Live display value: shows interim words immediately while recording
+  const displayTranscript = isListening && interimTranscript
+    ? (transcript ? transcript + " " : "") + interimTranscript
+    : transcript;
 
   // Browser support check
   const [showBrowserWarning, setShowBrowserWarning] = useState(false);
@@ -441,7 +446,7 @@ export default function Home() {
                 />
               </div>
               <TranscriptEditor
-                value={transcript}
+                value={displayTranscript}
                 onChange={setTranscript}
                 onClear={handleClear}
                 isListening={isListening}
@@ -492,7 +497,7 @@ export default function Home() {
             {/* Category Card */}
             <div className="bg-bg-card rounded-2xl border border-border-subtle p-4 space-y-3">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-text-secondary">Choose Category</span>
+                <span className="text-sm font-semibold text-text-secondary">Choose Any Categories That Apply</span>
                 <TooltipIcon
                   content="Select categories to tag your idea. LOS & Tech for system improvements, Pipeline for workflow, Marketing for CRM/campaigns, Products for new offerings."
                   position="left"
