@@ -401,7 +401,7 @@ export default function Home() {
         </section>
 
         {/* Two-Column: Form Left, Output Right (on demand) */}
-        <div className="flex gap-4 sm:gap-6 items-start">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 items-start">
 
           {/* LEFT COLUMN — Form */}
           <div className={`space-y-3 transition-all duration-300 ${
@@ -637,36 +637,36 @@ export default function Home() {
 
           {/* Mobile Output — below form on small screens */}
           {(isGenerating || generatedPrompt) && (
-            <div className="lg:hidden w-full mt-3 bg-bg-card rounded-2xl border border-border-subtle overflow-hidden animate-fade_in">
-              <div className="flex-shrink-0 px-5 py-4 border-b border-border-subtle bg-gradient-to-r from-cmg-blue/10 to-transparent">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cmg-blue to-cmg-deep flex items-center justify-center">
-                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <div className="lg:hidden w-full bg-bg-card rounded-2xl border border-border-subtle overflow-hidden animate-fade_in">
+              <div className="flex-shrink-0 px-4 py-3 border-b border-border-subtle bg-gradient-to-r from-cmg-blue/10 to-transparent">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-cmg-blue to-cmg-deep flex items-center justify-center flex-shrink-0">
+                      <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                     </div>
-                    <div>
-                      <h2 className="text-base font-bold text-text-primary">Structured Idea</h2>
-                      <p className="text-xs text-text-muted">Powered by AI</p>
+                    <div className="min-w-0">
+                      <h2 className="text-sm font-bold text-text-primary leading-tight">Structured Idea</h2>
+                      <p className="text-[10px] text-text-muted">Powered by AI</p>
                     </div>
                   </div>
                   {generatedPrompt && (
-                    <div className="flex gap-2 flex-wrap justify-end">
-                      <button onClick={handleSubmit} disabled={isSubmitting} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${isSubmitting ? "bg-accent-blue/50 text-white cursor-wait" : "bg-accent-blue text-white hover:brightness-110 animate-pulse-glow-blue"}`}>
-                        {isSubmitting ? "Sending..." : "Submit"}
+                    <div className="flex gap-1.5 flex-shrink-0">
+                      <button onClick={handleSubmit} disabled={isSubmitting} className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all min-h-[36px] ${isSubmitting ? "bg-accent-blue/50 text-white cursor-wait" : "bg-accent-blue text-white hover:brightness-110 animate-pulse-glow-blue"}`}>
+                        {isSubmitting ? "..." : "Submit"}
                       </button>
-                      <button onClick={handleCopy} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${copied ? "bg-accent-green text-white" : "bg-bg-elevated text-text-secondary"}`}>
-                        {copied ? "Copied!" : "Copy"}
+                      <button onClick={handleCopy} className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all min-h-[36px] ${copied ? "bg-accent-green text-white" : "bg-bg-elevated text-text-secondary"}`}>
+                        {copied ? "✓" : "Copy"}
                       </button>
-                      <button onClick={handleReset} className="px-3 py-1.5 rounded-lg bg-bg-elevated text-text-secondary hover:text-accent-rose text-xs font-semibold transition-all">
+                      <button onClick={handleReset} className="px-3 py-2 rounded-lg bg-bg-elevated text-text-secondary hover:text-accent-rose text-xs font-semibold transition-all min-h-[36px]">
                         Clear
                       </button>
                     </div>
                   )}
                 </div>
               </div>
-              <div className="p-4 sm:p-5">
+              <div className="p-4">
                 {isGenerating ? (
                   <div className="flex flex-col items-center justify-center py-8 text-text-muted">
                     <div className="relative w-16 h-16 mb-4">
@@ -674,7 +674,7 @@ export default function Home() {
                       <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-cmg-blue animate-spin" />
                       <span className="absolute inset-0 flex items-center justify-center text-2xl">{loadingSlides[loadingSlide].icon}</span>
                     </div>
-                    <div key={loadingSlide} className="text-center animate-fade_in">
+                    <div key={loadingSlide} className="text-center animate-fade_in px-2">
                       <p className="text-sm font-bold text-text-primary mb-1">{loadingSlides[loadingSlide].title}</p>
                       <p className="text-xs text-text-secondary">{loadingSlides[loadingSlide].subtitle}</p>
                     </div>

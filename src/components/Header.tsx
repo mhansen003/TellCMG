@@ -81,23 +81,24 @@ export default function Header({ onAboutClick }: HeaderProps) {
 
             <div className="p-6 sm:p-8 text-center">
               {/* QR Code */}
-              <div className="inline-flex p-4 rounded-2xl bg-white mb-5">
+              <div className="inline-flex p-3 sm:p-4 rounded-2xl bg-white mb-5">
                 <QRCodeSVG
                   value={TELLCMG_URL}
-                  size={200}
+                  size={180}
                   level="H"
                   bgColor="#ffffff"
                   fgColor="#2b3e50"
+                  className="w-[160px] h-[160px] sm:w-[180px] sm:h-[180px]"
                 />
               </div>
 
-              <h2 className="text-lg font-bold text-text-primary mb-1">
+              <h2 className="text-base sm:text-lg font-bold text-text-primary mb-1">
                 Share TellCMG
               </h2>
-              <p className="text-sm text-text-secondary mb-1">
+              <p className="text-xs sm:text-sm text-text-secondary mb-1">
                 Scan to open on any device
               </p>
-              <p className="text-xs text-cmg-blue font-mono font-semibold mb-5 break-all">
+              <p className="text-[10px] sm:text-xs text-cmg-blue font-mono font-semibold mb-5 break-all">
                 {TELLCMG_URL}
               </p>
 
