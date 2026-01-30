@@ -331,9 +331,24 @@ export default function Home() {
       subtitle: "Organizing into clear sections with actionable details...",
     },
     {
+      icon: "🔍",
+      title: "Identifying Stakeholders",
+      subtitle: "Mapping affected departments, systems, and decision-makers...",
+    },
+    {
+      icon: "📊",
+      title: "Assessing Impact",
+      subtitle: "Evaluating benefits for efficiency, borrower experience, and growth...",
+    },
+    {
+      icon: "🚀",
+      title: "Finalizing Your Submission",
+      subtitle: "Polishing language and adding implementation considerations...",
+    },
+    {
       icon: "✨",
-      title: "Polishing & Finalizing",
-      subtitle: "Adding impact analysis and implementation considerations...",
+      title: "Almost There!",
+      subtitle: "Putting the finishing touches on your structured idea...",
     },
   ], []);
 
