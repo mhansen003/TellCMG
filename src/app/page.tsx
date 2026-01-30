@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { PromptModeId } from "@/lib/types";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useClipboard } from "@/hooks/useClipboard";
@@ -308,6 +308,43 @@ export default function Home() {
   }, [isListening, stopListening, resetTranscript]);
 
 
+  // Loading slides for generation animation
+  const loadingSlides = useMemo(() => [
+    {
+      icon: "🧠",
+      title: "Analyzing Your Idea",
+      subtitle: "Understanding the context and identifying key themes...",
+    },
+    {
+      icon: "🏦",
+      title: "Applying Mortgage Expertise",
+      subtitle: "Connecting your idea to CMG's tools, workflows, and teams...",
+    },
+    {
+      icon: "📐",
+      title: "Structuring the Submission",
+      subtitle: "Organizing into clear sections with actionable details...",
+    },
+    {
+      icon: "✨",
+      title: "Polishing & Finalizing",
+      subtitle: "Adding impact analysis and implementation considerations...",
+    },
+  ], []);
+
+  const [loadingSlide, setLoadingSlide] = useState(0);
+
+  useEffect(() => {
+    if (!isGenerating) {
+      setLoadingSlide(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setLoadingSlide((prev) => (prev + 1) % loadingSlides.length);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, [isGenerating, loadingSlides.length]);
+
   return (
     <div className="relative z-10 min-h-screen">
       {/* History Sidebar */}
@@ -324,8 +361,8 @@ export default function Home() {
       {/* Header */}
       <Header onAboutClick={() => setShowAbout(true)} />
 
-      {/* Main Content — Single Column */}
-      <div className="max-w-2xl mx-auto px-3 sm:px-4 pb-6 sm:pb-8">
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 pb-6 sm:pb-8">
 
         {/* Browser Warning */}
         {showBrowserWarning && <BrowserWarning />}
@@ -363,105 +400,112 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Single Column Flow */}
-        <div className="space-y-3">
+        {/* Two-Column: Form Left, Output Right (on demand) */}
+        <div className="flex gap-4 sm:gap-6 items-start">
 
-          {/* Email Identification Card */}
-          <div className="bg-bg-card rounded-2xl border border-border-subtle p-4">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-semibold text-text-secondary flex items-center gap-2">
-                <svg className="w-4 h-4 text-cmg-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                Identify Yourself
-              </span>
-              <TooltipIcon
-                content="Enter your CMG email so your idea is attributed to you. This is saved locally for convenience."
-                position="left"
-              />
-            </div>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="your.name@cmgfi.com"
-              className="w-full px-4 py-2.5 rounded-xl bg-bg-elevated border border-border-subtle text-text-primary text-sm placeholder:text-text-muted/60 focus:outline-none focus:border-cmg-blue/50 focus:ring-1 focus:ring-cmg-blue/30 transition-all"
-            />
-          </div>
+          {/* LEFT COLUMN — Form */}
+          <div className={`space-y-3 transition-all duration-300 ${
+            (isGenerating || generatedPrompt) ? "w-full lg:w-1/2 lg:flex-shrink-0" : "w-full max-w-2xl mx-auto"
+          }`}>
 
-          {/* Your Idea Card */}
-          <div className="bg-bg-card rounded-2xl border border-border-subtle p-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-text-secondary">Your Idea</span>
-              <TooltipIcon
-                content="Type your idea directly, or use the microphone above to speak. Your voice is converted to text in real-time."
-                position="left"
-              />
-            </div>
-            <TranscriptEditor
-              value={transcript}
-              onChange={setTranscript}
-              onClear={handleClear}
-              isListening={isListening}
-              attachments={attachments}
-              onAttachmentsChange={setAttachments}
-            />
-          </div>
-
-          {/* Structure My Idea Button */}
-          <div className="flex gap-2">
-            {isGenerating ? (
-              <>
-                <div className="flex-1 h-14 rounded-xl bg-gradient-to-r from-cmg-blue to-cmg-deep text-white font-bold text-sm flex items-center justify-center gap-2">
-                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            {/* Email Identification Card */}
+            <div className="bg-bg-card rounded-2xl border border-border-subtle p-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-semibold text-text-secondary flex items-center gap-2">
+                  <svg className="w-4 h-4 text-cmg-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                  Structuring...
-                </div>
-                <button
-                  onClick={handleCancelGeneration}
-                  className="h-14 px-5 rounded-xl bg-bg-card border-2 border-accent-rose/50 text-accent-rose font-semibold text-sm transition-all hover:bg-accent-rose/10 active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  Cancel
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={handleGenerate}
-                disabled={!transcript.trim()}
-                className={`flex-1 h-14 rounded-xl bg-gradient-to-r from-cmg-blue to-cmg-deep text-white font-bold text-sm transition-all hover:brightness-110 hover:shadow-lg hover:shadow-cmg-blue/20 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer ${
-                  transcript.trim() ? "animate-pulse-glow shadow-[0_0_20px_rgba(155,197,61,0.4)]" : ""
-                }`}
-              >
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                  Structure My Idea
+                  Identify Yourself
                 </span>
-              </button>
-            )}
-          </div>
-
-          {/* Category Card */}
-          <div className="bg-bg-card rounded-2xl border border-border-subtle p-4 space-y-3">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-semibold text-text-secondary">Choose Category</span>
-              <TooltipIcon
-                content="Select categories to tag your idea. LOS & Tech for system improvements, Pipeline for workflow, Marketing for CRM/campaigns, Products for new offerings."
-                position="left"
+                <TooltipIcon
+                  content="Enter your CMG email so your idea is attributed to you. This is saved locally for convenience."
+                  position="left"
+                />
+              </div>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your.name@cmgfi.com"
+                className="w-full px-4 py-2.5 rounded-xl bg-bg-elevated border border-border-subtle text-text-primary text-sm placeholder:text-text-muted/60 focus:outline-none focus:border-cmg-blue/50 focus:ring-1 focus:ring-cmg-blue/30 transition-all"
               />
             </div>
-            <PromptModeSelector selected={modes} onChange={setModes} />
+
+            {/* Your Idea Card */}
+            <div className="bg-bg-card rounded-2xl border border-border-subtle p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold text-text-secondary">Your Idea</span>
+                <TooltipIcon
+                  content="Type your idea directly, or use the microphone above to speak. Your voice is converted to text in real-time."
+                  position="left"
+                />
+              </div>
+              <TranscriptEditor
+                value={transcript}
+                onChange={setTranscript}
+                onClear={handleClear}
+                isListening={isListening}
+                attachments={attachments}
+                onAttachmentsChange={setAttachments}
+              />
+            </div>
+
+            {/* Structure My Idea Button */}
+            <div className="flex gap-2">
+              {isGenerating ? (
+                <>
+                  <div className="flex-1 h-14 rounded-xl bg-gradient-to-r from-cmg-blue to-cmg-deep text-white font-bold text-sm flex items-center justify-center gap-2">
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Structuring...
+                  </div>
+                  <button
+                    onClick={handleCancelGeneration}
+                    className="h-14 px-5 rounded-xl bg-bg-card border-2 border-accent-rose/50 text-accent-rose font-semibold text-sm transition-all hover:bg-accent-rose/10 active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={handleGenerate}
+                  disabled={!transcript.trim()}
+                  className={`flex-1 h-14 rounded-xl bg-gradient-to-r from-cmg-blue to-cmg-deep text-white font-bold text-sm transition-all hover:brightness-110 hover:shadow-lg hover:shadow-cmg-blue/20 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer ${
+                    transcript.trim() ? "animate-pulse-glow shadow-[0_0_20px_rgba(155,197,61,0.4)]" : ""
+                  }`}
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Structure My Idea
+                  </span>
+                </button>
+              )}
+            </div>
+
+            {/* Category Card */}
+            <div className="bg-bg-card rounded-2xl border border-border-subtle p-4 space-y-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold text-text-secondary">Choose Category</span>
+                <TooltipIcon
+                  content="Select categories to tag your idea. LOS & Tech for system improvements, Pipeline for workflow, Marketing for CRM/campaigns, Products for new offerings."
+                  position="left"
+                />
+              </div>
+              <PromptModeSelector selected={modes} onChange={setModes} />
+            </div>
           </div>
 
-          {/* Output Panel — only visible when generating or has content */}
+          {/* RIGHT COLUMN — Output (only when generating or has content) */}
           {(isGenerating || generatedPrompt) && (
-            <div className="bg-bg-card rounded-2xl border border-border-subtle overflow-hidden animate-fade_in">
+            <div className="hidden lg:block w-1/2 flex-shrink-0 animate-fade_in sticky top-4">
+            <div className="bg-bg-card rounded-2xl border border-border-subtle overflow-hidden flex flex-col max-h-[calc(100vh-100px)]">
               <div className="flex-shrink-0 px-5 py-4 border-b border-border-subtle bg-gradient-to-r from-cmg-blue/10 to-transparent">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -534,14 +578,43 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="p-4 sm:p-5">
+              <div className="p-4 sm:p-5 flex-1 min-h-0 overflow-y-auto">
                 {isGenerating ? (
-                  <div className="flex flex-col items-center justify-center py-12 text-text-muted">
-                    <div className="relative w-16 h-16 mb-4">
-                      <div className="absolute inset-0 rounded-full border-4 border-cmg-blue/20" />
+                  <div className="flex flex-col items-center justify-center py-10 text-text-muted">
+                    {/* Spinner */}
+                    <div className="relative w-20 h-20 mb-6">
+                      <div className="absolute inset-0 rounded-full border-4 border-cmg-blue/10" />
                       <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-cmg-blue animate-spin" />
+                      <span className="absolute inset-0 flex items-center justify-center text-3xl">
+                        {loadingSlides[loadingSlide].icon}
+                      </span>
                     </div>
-                    <p className="text-sm font-medium">AI is structuring your idea...</p>
+
+                    {/* Slide text */}
+                    <div key={loadingSlide} className="text-center animate-fade_in">
+                      <p className="text-base font-bold text-text-primary mb-1">
+                        {loadingSlides[loadingSlide].title}
+                      </p>
+                      <p className="text-sm text-text-secondary max-w-xs">
+                        {loadingSlides[loadingSlide].subtitle}
+                      </p>
+                    </div>
+
+                    {/* Progress dots */}
+                    <div className="flex gap-2 mt-6">
+                      {loadingSlides.map((_, idx) => (
+                        <div
+                          key={idx}
+                          className={`h-1.5 rounded-full transition-all duration-500 ${
+                            idx === loadingSlide
+                              ? "w-6 bg-cmg-blue"
+                              : idx < loadingSlide
+                                ? "w-1.5 bg-cmg-blue/40"
+                                : "w-1.5 bg-border-subtle"
+                          }`}
+                        />
+                      ))}
+                    </div>
                   </div>
                 ) : generatedPrompt ? (
                   <div className="relative">
@@ -559,7 +632,65 @@ export default function Home() {
                 ) : null}
               </div>
             </div>
+            </div>
           )}
+
+          {/* Mobile Output — below form on small screens */}
+          {(isGenerating || generatedPrompt) && (
+            <div className="lg:hidden w-full mt-3 bg-bg-card rounded-2xl border border-border-subtle overflow-hidden animate-fade_in">
+              <div className="flex-shrink-0 px-5 py-4 border-b border-border-subtle bg-gradient-to-r from-cmg-blue/10 to-transparent">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cmg-blue to-cmg-deep flex items-center justify-center">
+                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h2 className="text-base font-bold text-text-primary">Structured Idea</h2>
+                      <p className="text-xs text-text-muted">Powered by AI</p>
+                    </div>
+                  </div>
+                  {generatedPrompt && (
+                    <div className="flex gap-2 flex-wrap justify-end">
+                      <button onClick={handleSubmit} disabled={isSubmitting} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${isSubmitting ? "bg-cmg-blue/50 text-white cursor-wait" : "bg-cmg-blue text-white hover:brightness-110"}`}>
+                        {isSubmitting ? "Sending..." : "Submit"}
+                      </button>
+                      <button onClick={handleCopy} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${copied ? "bg-accent-green text-white" : "bg-bg-elevated text-text-secondary"}`}>
+                        {copied ? "Copied!" : "Copy"}
+                      </button>
+                      <button onClick={handleReset} className="px-3 py-1.5 rounded-lg bg-bg-elevated text-text-secondary hover:text-accent-rose text-xs font-semibold transition-all">
+                        Clear
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="p-4 sm:p-5">
+                {isGenerating ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-text-muted">
+                    <div className="relative w-16 h-16 mb-4">
+                      <div className="absolute inset-0 rounded-full border-4 border-cmg-blue/10" />
+                      <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-cmg-blue animate-spin" />
+                      <span className="absolute inset-0 flex items-center justify-center text-2xl">{loadingSlides[loadingSlide].icon}</span>
+                    </div>
+                    <div key={loadingSlide} className="text-center animate-fade_in">
+                      <p className="text-sm font-bold text-text-primary mb-1">{loadingSlides[loadingSlide].title}</p>
+                      <p className="text-xs text-text-secondary">{loadingSlides[loadingSlide].subtitle}</p>
+                    </div>
+                    <div className="flex gap-2 mt-4">
+                      {loadingSlides.map((_, idx) => (
+                        <div key={idx} className={`h-1.5 rounded-full transition-all duration-500 ${idx === loadingSlide ? "w-6 bg-cmg-blue" : idx < loadingSlide ? "w-1.5 bg-cmg-blue/40" : "w-1.5 bg-border-subtle"}`} />
+                      ))}
+                    </div>
+                  </div>
+                ) : generatedPrompt ? (
+                  <FormattedPrompt content={generatedPrompt} />
+                ) : null}
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
 
